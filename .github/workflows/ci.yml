@@ -24,4 +24,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Executar testes unitários e de integração com cobertura
-        run: pytest -v --cov=app --cov-report=term-missing
+        run: python -m pytest -v --cov=app --cov-report=term-missing
