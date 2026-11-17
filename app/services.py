@@ -77,3 +77,16 @@ def registrar_entrega_fefo(cpf: str, categoria: str, quantidade: int, usuario_id
     db.session.add(entrega)
     db.session.commit()
     return entrega, lote
+
+def listar_itens_vencendo(dias_alerta: int = 10):
+    from datetime import date, timedelta
+    limite = date.today() + timedelta(days=dias_alerta)
+    return (
+        ItemEstoque.query.filter(
+            ItemEstoque.quantidade_atual > 0,
+            ItemEstoque.data_validade.isnot(None),
+            ItemEstoque.data_validade <= limite,
+        )
+        .order_by(ItemEstoque.data_validade.asc())
+        .all()
+    )
