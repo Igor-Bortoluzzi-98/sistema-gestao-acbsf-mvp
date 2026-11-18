@@ -6,6 +6,42 @@ from app.models import Familia, ItemEstoque, Entrega
 class RegraNegocioError(ValueError):
     pass
 
+BusinessRuleError = RegraNegocioError
+
+
+def sanitizar_texto(texto: str) -> str:
+    return (texto or "").strip()
+
+
+def cadastrar_familia(nome: str, cpf: str, qtd_moradores: int = 1):
+    cpf_limpo = validar_cpf_numerico(cpf)
+    if Familia.query.filter_by(cpf_responsavel=cpf_limpo).first():
+        raise RegraNegocioError("CPF já cadastrado para outra família.")
+    familia = Familia(
+        nome_responsavel=sanitizar_texto(nome),
+        cpf_responsavel=cpf_limpo,
+        endereco_resumido="Bairro Santa Felícia",
+        qtd_integrantes=qtd_moradores,
+    )
+    db.session.add(familia)
+    db.session.commit()
+    return familia
+
+
+def listar_itens_vencendo(dias: int = 15):
+    return listar_estoque_fefo()
+
+
+def registrar_entrega(familia_id: int, categoria: str, quantidade: int = 1):
+    familia = db.session.get(Familia, familia_id)
+    if not familia:
+        raise RegraNegocioError("Família não encontrada.")
+    return registrar_entrega_fefo(
+        cpf=familia.cpf_responsavel,
+        categoria=categoria,
+        quantidade=quantidade,
+        usuario_id=1,
+    )
 
 def validar_cpf_numerico(cpf: str) -> str:
     digitos = "".join(ch for ch in (cpf or "") if ch.isdigit())
